@@ -4,6 +4,29 @@ import { useEffect, useState, use } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
+const DAYS_ES = {
+  monday: "Lunes",
+  tuesday: "Martes",
+  wednesday: "Miércoles",
+  thursday: "Jueves",
+  friday: "Viernes",
+  saturday: "Sábado",
+  sunday: "Domingo"
+};
+
+type DaySchedule = { isOpen: boolean; open: string; close: string };
+type ScheduleConfig = Record<string, DaySchedule>;
+
+const defaultSchedule: ScheduleConfig = {
+  monday: { isOpen: true, open: "09:00", close: "18:00" },
+  tuesday: { isOpen: true, open: "09:00", close: "18:00" },
+  wednesday: { isOpen: true, open: "09:00", close: "18:00" },
+  thursday: { isOpen: true, open: "09:00", close: "18:00" },
+  friday: { isOpen: true, open: "09:00", close: "15:00" },
+  saturday: { isOpen: false, open: "00:00", close: "00:00" },
+  sunday: { isOpen: false, open: "00:00", close: "00:00" }
+};
+
 export default function EditarAgencia({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
@@ -19,7 +42,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     async function cargarDatos() {
       const { data: orgData } = await supabase.from('organizations').select('*').eq('id', agenciaId).single();
       if (orgData) {
-        if (!orgData.business_hours) orgData.business_hours = { open: '09:00', close: '21:00' };
+        if (!orgData.schedule) orgData.schedule = defaultSchedule;
         setAgencia(orgData);
       }
 
@@ -50,14 +73,25 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     setGuardando(true);
     await supabase.from('organizations').update({
       name: agencia.name,
+      contact_email: agencia.contact_email, // Campo añadido a la escritura
       inbound_email: agencia.inbound_email,
       assigned_phone: agencia.assigned_phone,
       ai_prompt_template: agencia.ai_prompt_template,
-      business_hours: agencia.business_hours
+      schedule: agencia.schedule 
     }).eq('id', agenciaId);
     setGuardando(false);
     alert("Configuración guardada.");
   }
+
+  const updateDaySchedule = (day: string, field: keyof DaySchedule, value: boolean | string) => {
+    setAgencia({
+      ...agencia,
+      schedule: {
+        ...agencia.schedule,
+        [day]: { ...agencia.schedule[day], [field]: value }
+      }
+    });
+  };
 
   async function crearAgente(e: React.FormEvent) {
     e.preventDefault();
@@ -102,6 +136,18 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
             <form onSubmit={guardarCambios} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 space-y-6">
               <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400">Configuración Lógica</h2>
               
+              {/* CAMPO AÑADIDO: Correo de Contacto */}
+              <div className="space-y-1">
+                <label className="text-[10px] md:text-xs font-semibold text-gray-600">Correo de Contacto (Gerencia)</label>
+                <input 
+                  type="email" 
+                  value={agencia.contact_email || ''} 
+                  onChange={(e) => setAgencia({...agencia, contact_email: e.target.value})} 
+                  className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 outline-none focus:border-blue-500" 
+                  placeholder="gerencia@agencia.com"
+                />
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <label className="text-[10px] md:text-xs font-semibold text-gray-600">Buzón de Entrada</label>
@@ -113,18 +159,47 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-gray-600">Apertura</label>
-                  <input type="time" value={agencia.business_hours.open} onChange={(e) => setAgencia({...agencia, business_hours: {...agencia.business_hours, open: e.target.value}})} className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 outline-none focus:border-blue-500" />
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-gray-600">Cierre</label>
-                  <input type="time" value={agencia.business_hours.close} onChange={(e) => setAgencia({...agencia, business_hours: {...agencia.business_hours, close: e.target.value}})} className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 outline-none focus:border-blue-500" />
+              <div className="space-y-3 pt-4 border-t border-gray-100">
+                <label className="text-[10px] md:text-xs font-semibold text-gray-600 uppercase tracking-widest block mb-2">Matriz de Enrutamiento</label>
+                <div className="space-y-2 border border-gray-200 rounded-lg p-2 bg-gray-50">
+                  {Object.keys(DAYS_ES).map((day) => {
+                    const dayData = agencia.schedule?.[day] || defaultSchedule[day];
+                    return (
+                      <div key={day} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100 shadow-sm">
+                        <div className="flex items-center gap-3 w-1/3">
+                          <input 
+                            type="checkbox" 
+                            checked={dayData.isOpen}
+                            onChange={(e) => updateDaySchedule(day, "isOpen", e.target.checked)}
+                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className={`text-xs font-bold ${dayData.isOpen ? 'text-gray-800' : 'text-gray-400'}`}>
+                            {DAYS_ES[day as keyof typeof DAYS_ES]}
+                          </span>
+                        </div>
+
+                        <div className={`flex gap-3 transition-opacity ${dayData.isOpen ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                          <input 
+                            type="time" 
+                            value={dayData.open}
+                            onChange={(e) => updateDaySchedule(day, "open", e.target.value)}
+                            className="border border-gray-200 text-gray-800 text-xs p-1.5 rounded outline-none focus:border-blue-500"
+                          />
+                          <span className="text-gray-400 text-xs mt-1.5">-</span>
+                          <input 
+                            type="time" 
+                            value={dayData.close}
+                            onChange={(e) => updateDaySchedule(day, "close", e.target.value)}
+                            className="border border-gray-200 text-gray-800 text-xs p-1.5 rounded outline-none focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="space-y-1">
+              <div className="space-y-1 pt-4 border-t border-gray-100">
                 <label className="text-[10px] md:text-xs font-semibold text-gray-600">Cerebro IA (Prompt)</label>
                 <textarea rows={6} value={agencia.ai_prompt_template || ''} onChange={(e) => setAgencia({...agencia, ai_prompt_template: e.target.value})} className="w-full border rounded p-3 md:p-2 text-sm focus:border-blue-500 outline-none transition-all" />
               </div>
