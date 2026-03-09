@@ -21,9 +21,14 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "NeoVox Admin",
-  description: "Torre de control de nodos",
+  title: "NeoVox | Panel Maestro",
+  description: "Consola de administración de infraestructura",
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Admin NeoVox",
+  },
 };
 
 export default function RootLayout({
@@ -33,9 +38,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         {children}
       </body>
     </html>
