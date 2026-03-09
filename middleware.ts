@@ -24,7 +24,8 @@ export function middleware(req: NextRequest) {
   });
 }
 
-// Protegemos todas las rutas excepto los archivos estáticos internos
 export const config = {
-  matcher: '/((?!_next/static|_next/image|favicon.ico).*)',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|manifest|icon-|logo.png).*)',
+  ],
 };
