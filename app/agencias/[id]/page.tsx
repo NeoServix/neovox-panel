@@ -73,7 +73,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     setGuardando(true);
     await supabase.from('organizations').update({
       name: agencia.name,
-      contact_email: agencia.contact_email, // Campo añadido a la escritura
+      contact_email: agencia.contact_email,
       inbound_email: agencia.inbound_email,
       assigned_phone: agencia.assigned_phone,
       ai_prompt_template: agencia.ai_prompt_template,
@@ -114,156 +114,172 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     setAgentes(agentes.map(a => a.id === id ? { ...a, is_receiving_calls: !estado } : a));
   }
 
-  if (!agencia) return <div className="p-10 text-center text-gray-500">Conectando al búnker...</div>;
+  if (!agencia) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono text-xs">Conectando al búnker...</div>;
 
   return (
-    <main className="p-4 md:p-10 bg-gray-50 min-h-screen font-sans text-gray-900">
-      <div className="max-w-5xl mx-auto space-y-6 md:space-y-8">
+    <main className="p-4 md:p-10 bg-black min-h-screen font-sans text-gray-200 relative selection:bg-[#00A8E8] selection:text-white">
+      {/* Resplandor de fondo general */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-150 bg-[#00A8E8]/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+
+      <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative z-10">
         
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-[#00A8E8]/20 pb-6">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold">{agencia.name}</h1>
-            <p className="text-xs md:text-sm text-gray-500 mt-1">ID de Agencia: {agencia.id}</p>
+            <h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">{agencia.name}</h1>
+            <p className="text-[10px] md:text-xs text-[#00A8E8] font-mono mt-2 uppercase tracking-widest bg-[#00A8E8]/10 inline-block px-3 py-1 rounded-full border border-[#00A8E8]/20">ID de Agencia: {agencia.id}</p>
           </div>
-          <button onClick={() => router.push('/')} className="bg-white border border-gray-300 px-4 py-3 md:py-2 rounded-lg shadow-sm text-xs md:text-sm font-semibold hover:bg-gray-50 w-full md:w-auto text-center transition-colors">
-            Volver al Dashboard
+          <button onClick={() => router.push('/')} className="bg-[#121212]/80 border border-white/10 px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-white/10 transition-colors text-white uppercase tracking-wider w-full md:w-auto text-center shadow-sm">
+            Volver al Panel
           </button>
         </div>
         
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
           
           <div className="lg:col-span-2 space-y-6 md:space-y-8">
-            <form onSubmit={guardarCambios} className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 space-y-6">
-              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400">Configuración Lógica</h2>
+            <form onSubmit={guardarCambios} className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-transparent via-[#00A8E8]/50 to-transparent" />
+              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-[#00A8E8] mb-6">Configuración Lógica</h2>
               
-              {/* CAMPO AÑADIDO: Correo de Contacto */}
-              <div className="space-y-1">
-                <label className="text-[10px] md:text-xs font-semibold text-gray-600">Correo de Contacto (Gerencia)</label>
-                <input 
-                  type="email" 
-                  value={agencia.contact_email || ''} 
-                  onChange={(e) => setAgencia({...agencia, contact_email: e.target.value})} 
-                  className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 outline-none focus:border-blue-500" 
-                  placeholder="gerencia@agencia.com"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-6">
                 <div className="space-y-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-gray-600">Buzón de Entrada</label>
-                  <input type="text" value={agencia.inbound_email || ''} onChange={(e) => setAgencia({...agencia, inbound_email: e.target.value})} className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 font-mono outline-none focus:border-blue-500" />
+                  <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest">Correo de Contacto (Gerencia)</label>
+                  <input 
+                    type="email" 
+                    value={agencia.contact_email || ''} 
+                    onChange={(e) => setAgencia({...agencia, contact_email: e.target.value})} 
+                    className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white outline-none focus:border-[#00A8E8] transition-colors" 
+                    placeholder="gerencia@agencia.com"
+                  />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-[10px] md:text-xs font-semibold text-gray-600">Cabecera Twilio</label>
-                  <input type="text" value={agencia.assigned_phone || ''} onChange={(e) => setAgencia({...agencia, assigned_phone: e.target.value})} className="w-full border rounded p-3 md:p-2 text-sm bg-gray-50 font-mono outline-none focus:border-blue-500" />
-                </div>
-              </div>
 
-              <div className="space-y-3 pt-4 border-t border-gray-100">
-                <label className="text-[10px] md:text-xs font-semibold text-gray-600 uppercase tracking-widest block mb-2">Matriz de Enrutamiento</label>
-                <div className="space-y-2 border border-gray-200 rounded-lg p-2 bg-gray-50">
-                  {Object.keys(DAYS_ES).map((day) => {
-                    const dayData = agencia.schedule?.[day] || defaultSchedule[day];
-                    return (
-                      <div key={day} className="flex items-center justify-between p-2 bg-white rounded border border-gray-100 shadow-sm">
-                        <div className="flex items-center gap-3 w-1/3">
-                          <input 
-                            type="checkbox" 
-                            checked={dayData.isOpen}
-                            onChange={(e) => updateDaySchedule(day, "isOpen", e.target.checked)}
-                            className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
-                          />
-                          <span className={`text-xs font-bold ${dayData.isOpen ? 'text-gray-800' : 'text-gray-400'}`}>
-                            {DAYS_ES[day as keyof typeof DAYS_ES]}
-                          </span>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest">Buzón de Entrada</label>
+                    <input type="text" value={agencia.inbound_email || ''} onChange={(e) => setAgencia({...agencia, inbound_email: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white font-mono outline-none focus:border-[#00A8E8] transition-colors" />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest">Número Twilio</label>
+                    <input type="text" value={agencia.assigned_phone || ''} onChange={(e) => setAgencia({...agencia, assigned_phone: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white font-mono outline-none focus:border-[#00A8E8] transition-colors" />
+                  </div>
+                </div>
+
+                <div className="space-y-3 pt-6 border-t border-white/5">
+                  <label className="text-[10px] md:text-xs font-semibold text-[#00A8E8] uppercase tracking-widest block mb-4">Matriz de Enrutamiento</label>
+                  <div className="space-y-2">
+                    {Object.keys(DAYS_ES).map((day) => {
+                      const dayData = agencia.schedule?.[day] || defaultSchedule[day];
+                      return (
+                        <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-black/40 rounded-2xl border border-white/5 gap-3">
+                          <div className="flex items-center gap-3 w-full sm:w-1/3">
+                            <input 
+                              type="checkbox" 
+                              checked={dayData.isOpen}
+                              onChange={(e) => updateDaySchedule(day, "isOpen", e.target.checked)}
+                              className="w-4 h-4 rounded border-white/20 bg-black/50 checked:bg-[#00A8E8] focus:ring-0 cursor-pointer"
+                            />
+                            <span className={`text-xs font-bold ${dayData.isOpen ? 'text-white' : 'text-gray-500'}`}>
+                              {DAYS_ES[day as keyof typeof DAYS_ES]}
+                            </span>
+                          </div>
+
+                          <div className={`flex gap-3 transition-opacity ${dayData.isOpen ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                            <input 
+                              type="time" 
+                              value={dayData.open}
+                              onChange={(e) => updateDaySchedule(day, "open", e.target.value)}
+                              className="bg-black/50 border border-[#00A8E8]/20 text-white text-xs p-2 rounded-lg outline-none focus:border-[#00A8E8] transition-colors"
+                            />
+                            <span className="text-gray-500 text-xs mt-2">-</span>
+                            <input 
+                              type="time" 
+                              value={dayData.close}
+                              onChange={(e) => updateDaySchedule(day, "close", e.target.value)}
+                              className="bg-black/50 border border-[#00A8E8]/20 text-white text-xs p-2 rounded-lg outline-none focus:border-[#00A8E8] transition-colors"
+                            />
+                          </div>
                         </div>
-
-                        <div className={`flex gap-3 transition-opacity ${dayData.isOpen ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-                          <input 
-                            type="time" 
-                            value={dayData.open}
-                            onChange={(e) => updateDaySchedule(day, "open", e.target.value)}
-                            className="border border-gray-200 text-gray-800 text-xs p-1.5 rounded outline-none focus:border-blue-500"
-                          />
-                          <span className="text-gray-400 text-xs mt-1.5">-</span>
-                          <input 
-                            type="time" 
-                            value={dayData.close}
-                            onChange={(e) => updateDaySchedule(day, "close", e.target.value)}
-                            className="border border-gray-200 text-gray-800 text-xs p-1.5 rounded outline-none focus:border-blue-500"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1 pt-4 border-t border-gray-100">
-                <label className="text-[10px] md:text-xs font-semibold text-gray-600">Cerebro IA (Prompt)</label>
-                <textarea rows={6} value={agencia.ai_prompt_template || ''} onChange={(e) => setAgencia({...agencia, ai_prompt_template: e.target.value})} className="w-full border rounded p-3 md:p-2 text-sm focus:border-blue-500 outline-none transition-all" />
-              </div>
+                <div className="space-y-1 pt-6 border-t border-white/5">
+                  <label className="text-[10px] md:text-xs font-semibold text-[#00A8E8] uppercase tracking-widest mb-2 block">Cerebro IA (Prompt)</label>
+                  <textarea rows={6} value={agencia.ai_prompt_template || ''} onChange={(e) => setAgencia({...agencia, ai_prompt_template: e.target.value})} className="w-full border border-white/10 rounded-xl p-4 text-sm bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors font-mono leading-relaxed" />
+                </div>
 
-              <button type="submit" disabled={guardando} className="w-full bg-blue-600 text-white font-bold py-4 md:py-3 rounded-lg hover:bg-blue-700 transition-all shadow-md active:scale-[0.98]">
-                {guardando ? 'Sincronizando...' : 'Guardar Cambios'}
-              </button>
+                <button type="submit" disabled={guardando} className="w-full bg-[#00A8E8] text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(0,168,232,0.3)] hover:bg-[#0090C8] transition-all uppercase text-xs tracking-widest disabled:opacity-50 active:scale-[0.98] mt-4">
+                  {guardando ? 'Sincronizando con búnker...' : 'Actualizar'}
+                </button>
+              </div>
             </form>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <div className="p-4 md:p-6 border-b border-gray-100">
+            <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+              <div className="p-5 md:p-6 border-b border-white/5">
                 <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400">Auditoría de Conversaciones</h2>
               </div>
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-white/5">
                 {llamadas.map(call => (
-                  <div key={call.id} className="p-4 hover:bg-gray-50 transition-colors">
+                  <div key={call.id} className="p-5 hover:bg-white/5 transition-colors group">
                     <div className="flex flex-col gap-2 mb-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] md:text-xs font-mono text-gray-400">{new Date(call.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
-                        <span className="font-bold text-sm text-gray-800">{call.leads?.parsed_data?.nombre || 'Desconocido'}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] md:text-xs font-mono text-[#00A8E8] bg-[#00A8E8]/10 px-2 py-0.5 rounded border border-[#00A8E8]/20">{new Date(call.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        <span className="font-bold text-sm text-white">{call.leads?.parsed_data?.nombre || 'Desconocido'}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-[11px] md:text-xs font-medium text-blue-600">↳ Atendido por {call.agents?.full_name}</span>
-                        <span className={`text-[9px] md:text-[10px] px-2 py-1 rounded-full font-bold uppercase ${call.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-[11px] md:text-xs text-gray-400 font-medium flex items-center gap-2">
+                          <svg className="w-3 h-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                          Atendido por <strong className="text-gray-200">{call.agents?.full_name}</strong>
+                        </span>
+                        <span className={`text-[9px] md:text-[10px] px-3 py-1.5 rounded-full font-bold uppercase tracking-widest shadow-inner ${call.status === 'completed' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
                           {call.status} ({call.duration}s)
                         </span>
                       </div>
                     </div>
-                    <p className="text-[13px] md:text-sm text-gray-600 italic bg-blue-50/50 p-3 rounded-lg border border-blue-100/50 leading-relaxed">
-                      " {call.leads?.ai_whisper || 'Sin resumen generado' } "
-                    </p>
+                    <div className="bg-black/40 border border-white/5 p-4 rounded-xl mt-3 relative overflow-hidden group-hover:border-[#00A8E8]/20 transition-colors">
+                      <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00A8E8]/30" />
+                      <p className="text-[13px] md:text-sm text-gray-400 italic font-medium leading-relaxed pl-2">
+                        " {call.leads?.ai_whisper || 'Sin resumen generado' } "
+                      </p>
+                    </div>
                   </div>
                 ))}
-                {llamadas.length === 0 && <div className="p-10 text-center text-sm text-gray-400">Sin actividad reciente.</div>}
+                {llamadas.length === 0 && <div className="p-16 text-center text-sm text-gray-500 font-mono">Sin actividad reciente.</div>}
               </div>
             </div>
           </div>
 
           <div className="space-y-6 md:space-y-8">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6">
-              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Comerciales en Línea</h2>
-              <div className="space-y-3 mb-6">
+            <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 text-[#00A8E8]">
+                  <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+              </div>
+              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400 mb-6 relative z-10">Terminales en Línea</h2>
+              
+              <div className="space-y-3 mb-8 relative z-10">
                 {agentes.map(agente => (
-                  <div key={agente.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-100 gap-3">
+                  <div key={agente.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 gap-3">
                     <div className="overflow-hidden">
-                      <p className="font-bold text-sm truncate">{agente.full_name}</p>
+                      <p className="font-bold text-sm text-white truncate mb-0.5">{agente.full_name}</p>
                       <p className="text-[10px] font-mono text-gray-500">{agente.phone_number}</p>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 border-gray-200 pt-3 sm:pt-0 mt-1 sm:mt-0">
-                      <button onClick={() => toggleLlamadas(agente.id, agente.is_receiving_calls)} className={`w-10 md:w-8 h-5 md:h-4 rounded-full relative transition-colors ${agente.is_receiving_calls ? 'bg-green-500' : 'bg-gray-300'}`}>
-                        <div className={`absolute top-0.5 w-4 md:w-3 h-4 md:h-3 bg-white rounded-full transition-all ${agente.is_receiving_calls ? 'left-5 md:left-4.5' : 'left-1 md:left-0.5'}`} />
+                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0 mt-1 sm:mt-0">
+                      <button onClick={() => toggleLlamadas(agente.id, agente.is_receiving_calls)} className={`w-14 h-7 rounded-full relative transition-colors shadow-inner ${agente.is_receiving_calls ? 'bg-[#00A8E8]' : 'bg-white/10'}`}>
+                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow-md ${agente.is_receiving_calls ? 'left-8' : 'left-1'}`} />
                       </button>
-                      <button onClick={() => eliminarAgente(agente.id)} className="p-2 md:p-1 text-gray-400 hover:text-red-500 transition-all">
-                        <svg className="w-5 md:w-4 h-5 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                      <button onClick={() => eliminarAgente(agente.id)} className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
               
-              <form onSubmit={crearAgente} className="space-y-2">
-                <input type="text" placeholder="Nombre completo" value={nuevoAgente.full_name} onChange={e => setNuevoAgente({...nuevoAgente, full_name: e.target.value})} className="w-full border rounded-lg p-3 md:p-2 text-sm focus:border-blue-500 outline-none" />
-                <input type="text" placeholder="+34..." value={nuevoAgente.phone_number} onChange={e => setNuevoAgente({...nuevoAgente, phone_number: e.target.value})} className="w-full border rounded-lg p-3 md:p-2 text-sm font-mono focus:border-blue-500 outline-none" />
-                <button type="submit" className="w-full bg-gray-900 text-white text-xs font-bold py-4 md:py-2 rounded-lg hover:bg-black transition-colors">Añadir Comercial</button>
+              <form onSubmit={crearAgente} className="space-y-3 relative z-10 pt-6 border-t border-white/5">
+                <label className="text-[10px] font-semibold text-[#00A8E8] uppercase tracking-widest block mb-2">Añadir Terminal</label>
+                <input type="text" placeholder="Nombre completo" value={nuevoAgente.full_name} onChange={e => setNuevoAgente({...nuevoAgente, full_name: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 text-sm bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors" />
+                <input type="text" placeholder="+34..." value={nuevoAgente.phone_number} onChange={e => setNuevoAgente({...nuevoAgente, phone_number: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 text-sm font-mono bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors" />
+                <button type="submit" className="w-full bg-white/5 border border-white/10 text-white text-xs font-bold py-3.5 rounded-xl hover:bg-white/10 transition-colors uppercase tracking-widest mt-2">Dar de alta</button>
               </form>
             </div>
           </div>
