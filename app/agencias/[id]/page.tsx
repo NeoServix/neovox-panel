@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import { useRouter } from 'next/navigation';
 
 const DAYS_ES = {
@@ -42,7 +42,6 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     async function cargarDatos() {
       const { data: orgData } = await supabase.from('organizations').select('*').eq('id', agenciaId).single();
       if (orgData) {
-        // Mapeo seguro a la estructura del frontend
         const scheduleData = orgData.business_hours || defaultSchedule;
         setAgencia({ ...orgData, schedule: scheduleData });
       }
@@ -50,7 +49,6 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
       const { data: agData } = await supabase.from('agents').select('*').eq('org_id', agenciaId).order('id', { ascending: true });
       if (agData) setAgentes(agData);
 
-      // Lectura de la tabla maestra con relaciones nativas
       const { data: leadsData } = await supabase
         .from('leads')
         .select(`
@@ -75,7 +73,6 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     e.preventDefault();
     setGuardando(true);
     
-    // Corrección: Guardamos los horarios en business_hours para respetar el SQL
     await supabase.from('organizations').update({
       name: agencia.name,
       contact_email: agencia.contact_email,
@@ -120,7 +117,6 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     setAgentes(agentes.map(a => a.id === id ? { ...a, is_receiving_calls: !estado } : a));
   }
 
-  // Traductor visual de estados del búnker
   function getEstadoVisual(status: string) {
     switch(status) {
       case 'connected':
@@ -130,9 +126,11 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
       case 'unanswered':
         return { texto: 'No Respondido', clases: 'bg-orange-500/10 text-orange-400 border border-orange-500/20' };
       case 'pending_notification':
-        return { texto: 'Espera Nocturna', clases: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' };
+        return { texto: 'Fuera de Horario', clases: 'bg-blue-500/10 text-blue-400 border border-blue-500/20' };
       case 'processing':
         return { texto: 'Analizando', clases: 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20' };
+      case 'notified':
+        return { texto: 'Aviso Enviado', clases: 'bg-purple-500/10 text-purple-400 border border-purple-500/20' };
       default:
         return { texto: status, clases: 'bg-gray-500/10 text-gray-400 border border-gray-500/20' };
     }
@@ -246,6 +244,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                   const estado = getEstadoVisual(lead.status);
                   const nombreLead = lead.parsed_data?.nombre || 'Lead Entrante';
                   const nombreAgente = lead.agents?.full_name || 'Sistema de Alerta';
+                  const telefonoCliente = lead.parsed_data?.telefono || 'Sin número';
 
                   return (
                     <div key={lead.id} className="p-5 hover:bg-white/5 transition-colors group">
@@ -255,6 +254,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                             {new Date(lead.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
                           </span>
                           <span className="font-bold text-sm text-white">{nombreLead}</span>
+                          <span className="text-xs font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">{telefonoCliente}</span>
                         </div>
                         <div className="flex justify-between items-center mt-1">
                           <span className="text-[11px] md:text-xs text-gray-400 font-medium flex items-center gap-2">
