@@ -78,6 +78,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
       contact_email: agencia.contact_email,
       inbound_email: agencia.inbound_email,
       assigned_phone: agencia.assigned_phone,
+      crm_forwarding_email: agencia.crm_forwarding_email || null,
       ai_prompt_template: agencia.ai_prompt_template,
       business_hours: agencia.schedule 
     }).eq('id', agenciaId);
@@ -182,6 +183,18 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                     <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest">Número Twilio</label>
                     <input type="text" value={agencia.assigned_phone || ''} onChange={(e) => setAgencia({...agencia, assigned_phone: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white font-mono outline-none focus:border-[#00A8E8] transition-colors" />
                   </div>
+                </div>
+
+                <div className="space-y-1 pt-4">
+                  <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest block mb-1">Ruta de Integración CRM</label>
+                  <input 
+                    type="email" 
+                    value={agencia.crm_forwarding_email || ''} 
+                    onChange={(e) => setAgencia({...agencia, crm_forwarding_email: e.target.value})} 
+                    className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white outline-none focus:border-[#00A8E8] transition-colors" 
+                    placeholder="buzon-captura@tu-crm.com (Opcional)"
+                  />
+                  <p className="text-[10px] text-gray-600 mt-1.5 ml-1">Si queda en blanco, NeoVox actuará como archivo local y enviará los avisos al correo de gerencia.</p>
                 </div>
 
                 <div className="space-y-3 pt-6 border-t border-white/5">
