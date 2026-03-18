@@ -36,7 +36,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   const [agentes, setAgentes] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
   const [guardando, setGuardando] = useState(false);
-  const [nuevoAgente, setNuevoAgente] = useState({ full_name: '', phone_number: '' });
+  const [nuevoAgente, setNuevoAgente] = useState({ full_name: '', phone_number: '', assigned_prefixes: '' });
 
   useEffect(() => {
     async function cargarDatos() {
@@ -100,10 +100,20 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   async function crearAgente(e: React.FormEvent) {
     e.preventDefault();
     if (!nuevoAgente.full_name || !nuevoAgente.phone_number) return;
-    const { data } = await supabase.from('agents').insert([{ org_id: agenciaId, full_name: nuevoAgente.full_name, phone_number: nuevoAgente.phone_number, is_receiving_calls: true }]).select();
+    
+    const prefijoLimpio = nuevoAgente.assigned_prefixes.trim() === '' ? null : nuevoAgente.assigned_prefixes.toUpperCase();
+
+    const { data } = await supabase.from('agents').insert([{ 
+      org_id: agenciaId, 
+      full_name: nuevoAgente.full_name, 
+      phone_number: nuevoAgente.phone_number, 
+      assigned_prefixes: prefijoLimpio,
+      is_receiving_calls: true 
+    }]).select();
+
     if (data) {
       setAgentes([...agentes, data[0]]);
-      setNuevoAgente({ full_name: '', phone_number: '' });
+      setNuevoAgente({ full_name: '', phone_number: '', assigned_prefixes: '' });
     }
   }
 
@@ -116,6 +126,12 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   async function toggleLlamadas(id: string, estado: boolean) {
     await supabase.from('agents').update({ is_receiving_calls: !estado }).eq('id', id);
     setAgentes(agentes.map(a => a.id === id ? { ...a, is_receiving_calls: !estado } : a));
+  }
+
+  async function actualizarPrefijoAgente(id: string, nuevoPrefijo: string) {
+    const prefijoLimpio = nuevoPrefijo.trim() === '' ? null : nuevoPrefijo.toUpperCase();
+    await supabase.from('agents').update({ assigned_prefixes: prefijoLimpio }).eq('id', id);
+    setAgentes(agentes.map(a => a.id === id ? { ...a, assigned_prefixes: prefijoLimpio } : a));
   }
 
   function getEstadoVisual(status: string) {
@@ -304,18 +320,30 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
               
               <div className="space-y-3 mb-8 relative z-10">
                 {agentes.map(agente => (
-                  <div key={agente.id} className="group flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5 gap-3">
-                    <div className="overflow-hidden">
-                      <p className="font-bold text-sm text-white truncate mb-0.5">{agente.full_name}</p>
-                      <p className="text-[10px] font-mono text-gray-500">{agente.phone_number}</p>
+                  <div key={agente.id} className="group flex flex-col p-4 bg-black/40 rounded-2xl border border-white/5 gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="overflow-hidden">
+                        <p className="font-bold text-sm text-white truncate mb-0.5">{agente.full_name}</p>
+                        <p className="text-[10px] font-mono text-gray-500">{agente.phone_number}</p>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                        <button onClick={() => toggleLlamadas(agente.id, agente.is_receiving_calls)} className={`w-14 h-7 rounded-full relative transition-colors shadow-inner ${agente.is_receiving_calls ? 'bg-[#00A8E8]' : 'bg-white/10'}`}>
+                          <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow-md ${agente.is_receiving_calls ? 'left-8' : 'left-1'}`} />
+                        </button>
+                        <button onClick={() => eliminarAgente(agente.id)} className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-t-0 border-white/10 pt-3 sm:pt-0 mt-1 sm:mt-0">
-                      <button onClick={() => toggleLlamadas(agente.id, agente.is_receiving_calls)} className={`w-14 h-7 rounded-full relative transition-colors shadow-inner ${agente.is_receiving_calls ? 'bg-[#00A8E8]' : 'bg-white/10'}`}>
-                        <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all shadow-md ${agente.is_receiving_calls ? 'left-8' : 'left-1'}`} />
-                      </button>
-                      <button onClick={() => eliminarAgente(agente.id)} className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                      </button>
+                    <div className="border-t border-white/5 pt-3 mt-1">
+                      <label className="text-[9px] font-semibold text-gray-500 uppercase tracking-widest block mb-1">Zonas de Enrutamiento (Separadas por comas)</label>
+                      <input
+                        type="text"
+                        defaultValue={agente.assigned_prefixes || ''}
+                        onBlur={(e) => actualizarPrefijoAgente(agente.id, e.target.value)}
+                        placeholder="Ej: Z1-, ALQ- (Vacío = Bolsa General)"
+                        className="w-full bg-black/50 border border-white/10 text-white text-xs font-mono p-2 rounded-lg outline-none focus:border-[#00A8E8] transition-colors placeholder-gray-700"
+                      />
                     </div>
                   </div>
                 ))}
@@ -325,6 +353,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                 <label className="text-[10px] font-semibold text-[#00A8E8] uppercase tracking-widest block mb-2">Añadir Terminal</label>
                 <input type="text" placeholder="Nombre completo" value={nuevoAgente.full_name} onChange={e => setNuevoAgente({...nuevoAgente, full_name: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 text-sm bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors" />
                 <input type="text" placeholder="+34..." value={nuevoAgente.phone_number} onChange={e => setNuevoAgente({...nuevoAgente, phone_number: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 text-sm font-mono bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors" />
+                <input type="text" placeholder="Zonas: Z1-, ALQ- (Opcional)" value={nuevoAgente.assigned_prefixes} onChange={e => setNuevoAgente({...nuevoAgente, assigned_prefixes: e.target.value})} className="w-full border border-white/10 rounded-xl p-3 text-sm font-mono bg-black/50 text-white focus:border-[#00A8E8] outline-none transition-colors" />
                 <button type="submit" className="w-full bg-white/5 border border-white/10 text-white text-xs font-bold py-3.5 rounded-xl hover:bg-white/10 transition-colors uppercase tracking-widest mt-2">Dar de alta</button>
               </form>
             </div>
