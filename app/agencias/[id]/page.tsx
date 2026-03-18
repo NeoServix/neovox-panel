@@ -156,7 +156,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   if (!agencia) return <div className="min-h-screen bg-black flex items-center justify-center text-white font-mono text-xs">Conectando al registro central...</div>;
 
   return (
-    <main className="p-4 md:p-10 bg-black min-h-screen font-sans text-gray-200 relative selection:bg-[#00A8E8] selection:text-white">
+    <main className="p-4 md:p-10 bg-black min-h-screen font-sans text-gray-200 relative selection:bg-[#00A8E8] selection:text-white overflow-x-hidden">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-200 h-150 bg-[#00A8E8]/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative z-10">
@@ -274,13 +274,14 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                   const nombreLead = lead.parsed_data?.nombre || 'Lead Entrante';
                   const nombreAgente = lead.agents?.full_name || 'Sistema de Alerta';
                   const telefonoCliente = lead.parsed_data?.telefono || 'Sin número';
+                  const fechaLead = new Date(lead.created_at);
 
                   return (
                     <div key={lead.id} className="p-5 hover:bg-white/5 transition-colors group">
                       <div className="flex flex-col gap-2 mb-3">
                         <div className="flex items-center gap-3">
                           <span className="text-[10px] md:text-xs font-mono text-[#00A8E8] bg-[#00A8E8]/10 px-2 py-0.5 rounded border border-[#00A8E8]/20">
-                            {new Date(lead.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                            {fechaLead.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: '2-digit' })} - {fechaLead.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}
                           </span>
                           <span className="font-bold text-sm text-white">{nombreLead}</span>
                           <span className="text-xs font-mono text-gray-500 bg-white/5 px-2 py-0.5 rounded-full border border-white/10">{telefonoCliente}</span>
