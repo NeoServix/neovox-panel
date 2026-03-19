@@ -81,7 +81,9 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
       assigned_phone: agencia.assigned_phone,
       crm_forwarding_email: agencia.crm_forwarding_email || null,
       ai_prompt_template: agencia.ai_prompt_template,
-      business_hours: agencia.schedule 
+      business_hours: agencia.schedule,
+      plan_tier: agencia.plan_tier,
+      extra_agents_quota: parseInt(agencia.extra_agents_quota) || 0
     }).eq('id', agenciaId);
     
     setGuardando(false);
@@ -187,6 +189,32 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
               <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-[#00A8E8] mb-6">Configuración Lógica</h2>
               
               <div className="space-y-6">
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-black/40 p-5 rounded-2xl border border-[#00A8E8]/20 mb-6">
+                  <div className="space-y-1">
+                    <label className="text-[10px] md:text-xs font-semibold text-[#00A8E8] uppercase tracking-widest">Plan Base</label>
+                    <select
+                      value={agencia.plan_tier || 'essential'}
+                      onChange={(e) => setAgencia({...agencia, plan_tier: e.target.value})}
+                      className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white outline-none focus:border-[#00A8E8] transition-colors appearance-none cursor-pointer"
+                    >
+                      <option value="essential">Essential (1 Terminal)</option>
+                      <option value="pro">Pro (2 Terminales)</option>
+                      <option value="elite">Elite (5 Terminales)</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-[10px] md:text-xs font-semibold text-[#00A8E8] uppercase tracking-widest">Cuota de Terminales Extra</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={agencia.extra_agents_quota || 0}
+                      onChange={(e) => setAgencia({...agencia, extra_agents_quota: e.target.value})}
+                      className="w-full border border-white/10 rounded-xl p-3 bg-black/50 text-white outline-none focus:border-[#00A8E8] transition-colors"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1">
                   <label className="text-[10px] md:text-xs font-semibold text-gray-500 uppercase tracking-widest">Correo de Contacto (Gerencia)</label>
                   <input 
