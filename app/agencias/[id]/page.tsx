@@ -37,6 +37,7 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   const [leads, setLeads] = useState<any[]>([]);
   const [guardando, setGuardando] = useState(false);
   const [nuevoAgente, setNuevoAgente] = useState({ full_name: '', phone_number: '', assigned_prefixes: '' });
+  const [enlaceCopiado, setEnlaceCopiado] = useState<string | null>(null);
 
   useEffect(() => {
     async function cargarDatos() {
@@ -132,6 +133,13 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     const prefijoLimpio = nuevoPrefijo.trim() === '' ? null : nuevoPrefijo.toUpperCase();
     await supabase.from('agents').update({ assigned_prefixes: prefijoLimpio }).eq('id', id);
     setAgentes(agentes.map(a => a.id === id ? { ...a, assigned_prefixes: prefijoLimpio } : a));
+  }
+
+  function copiarEnlaceStripe(tipo: string, urlBase: string) {
+    const urlFinal = `${urlBase}?client_reference_id=${agenciaId}|${tipo}`;
+    navigator.clipboard.writeText(urlFinal);
+    setEnlaceCopiado(tipo);
+    setTimeout(() => setEnlaceCopiado(null), 2000);
   }
 
   function getEstadoVisual(status: string) {
@@ -313,6 +321,46 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
           </div>
 
           <div className="space-y-6 md:space-y-8">
+            
+            <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Pasarela de Pagos (Stripe)</h2>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  onClick={() => copiarEnlaceStripe('essential', 'https://buy.stripe.com/fZu6oJ5NCfgSanmeW9bEA01')}
+                  className="w-full flex justify-between items-center bg-black/40 border border-white/5 p-3.5 rounded-xl hover:border-[#00A8E8]/50 transition-colors group"
+                >
+                  <span className="text-xs font-bold text-white group-hover:text-[#00A8E8] transition-colors">Plan Essential</span>
+                  <span className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${enlaceCopiado === 'essential' ? 'bg-[#00A8E8]/20 text-[#00A8E8]' : 'bg-white/5 text-gray-500'}`}>
+                    {enlaceCopiado === 'essential' ? '¡Copiado!' : 'Copiar URL'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => copiarEnlaceStripe('pro', 'https://buy.stripe.com/14AbJ3a3S8Suanm4hvbEA02')}
+                  className="w-full flex justify-between items-center bg-black/40 border border-white/5 p-3.5 rounded-xl hover:border-[#00A8E8]/50 transition-colors group"
+                >
+                  <span className="text-xs font-bold text-white group-hover:text-[#00A8E8] transition-colors">Plan Pro</span>
+                  <span className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${enlaceCopiado === 'pro' ? 'bg-[#00A8E8]/20 text-[#00A8E8]' : 'bg-white/5 text-gray-500'}`}>
+                    {enlaceCopiado === 'pro' ? '¡Copiado!' : 'Copiar URL'}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => copiarEnlaceStripe('extra', 'https://buy.stripe.com/aFa3cx6RGecOanm5lzbEA00')}
+                  className="w-full flex justify-between items-center bg-black/40 border border-white/5 p-3.5 rounded-xl hover:border-[#00A8E8]/50 transition-colors group"
+                >
+                  <span className="text-xs font-bold text-white group-hover:text-[#00A8E8] transition-colors">Terminal Extra</span>
+                  <span className={`text-[10px] font-mono px-2 py-1 rounded transition-colors ${enlaceCopiado === 'extra' ? 'bg-[#00A8E8]/20 text-[#00A8E8]' : 'bg-white/5 text-gray-500'}`}>
+                    {enlaceCopiado === 'extra' ? '¡Copiado!' : 'Copiar URL'}
+                  </span>
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-500 mt-4 leading-relaxed">
+                Estos botones incrustan el ID de la agencia de forma oculta en la URL. Pega el enlace en la videollamada para que el servidor automatice el alta tras el pago.
+              </p>
+            </div>
+
             <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-5 text-[#00A8E8]">
                   <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
