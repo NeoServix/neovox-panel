@@ -200,7 +200,6 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
                     >
                       <option value="essential">Essential (1 Terminal)</option>
                       <option value="pro">Pro (2 Terminales)</option>
-                      <option value="elite">Elite (5 Terminales)</option>
                     </select>
                   </div>
                   <div className="space-y-1">
