@@ -35,7 +35,9 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
   const [agencia, setAgencia] = useState<any>(null);
   const [agentes, setAgentes] = useState<any[]>([]);
   const [leads, setLeads] = useState<any[]>([]);
+  const [kycFiles, setKycFiles] = useState<any[]>([]);
   const [guardando, setGuardando] = useState(false);
+  const [descargandoArchivo, setDescargandoArchivo] = useState<string | null>(null);
   const [nuevoAgente, setNuevoAgente] = useState({ full_name: '', phone_number: '', assigned_prefixes: '' });
   const [enlaceCopiado, setEnlaceCopiado] = useState<string | null>(null);
 
@@ -66,6 +68,11 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
         .limit(20);
       
       if (leadsData) setLeads(leadsData);
+
+      const { data: filesData } = await supabase.storage.from('kyc-documents').list(agenciaId);
+      if (filesData) {
+        setKycFiles(filesData.filter(f => f.name !== '.emptyFolderPlaceholder'));
+      }
     }
     cargarDatos();
   }, [agenciaId]);
@@ -142,6 +149,27 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
     navigator.clipboard.writeText(urlFinal);
     setEnlaceCopiado(tipo);
     setTimeout(() => setEnlaceCopiado(null), 2000);
+  }
+
+  async function descargarDocumento(nombreArchivo: string) {
+    setDescargandoArchivo(nombreArchivo);
+    try {
+      const { data, error } = await supabase.storage.from('kyc-documents').download(`${agenciaId}/${nombreArchivo}`);
+      if (error) throw error;
+      
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error: any) {
+      alert("Error al descargar el archivo: " + error.message);
+    } finally {
+      setDescargandoArchivo(null);
+    }
   }
 
   function getEstadoVisual(status: string) {
@@ -349,6 +377,36 @@ export default function EditarAgencia({ params }: { params: Promise<{ id: string
 
           <div className="space-y-6 md:space-y-8">
             
+            <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-5 text-[#00A8E8]">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>
+              </div>
+              <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400 mb-4 relative z-10">Documentación KYC (Trust Hub)</h2>
+              
+              <div className="space-y-3 relative z-10">
+                {kycFiles.length > 0 ? (
+                  kycFiles.map((archivo, index) => (
+                    <div key={index} className="flex items-center justify-between bg-black/40 border border-white/5 p-3.5 rounded-xl">
+                      <span className="text-xs font-mono text-white truncate max-w-[60%]">{archivo.name}</span>
+                      <button 
+                        type="button"
+                        onClick={() => descargarDocumento(archivo.name)}
+                        disabled={descargandoArchivo === archivo.name}
+                        className="text-[10px] font-bold uppercase tracking-widest bg-[#00A8E8]/10 text-[#00A8E8] px-3 py-1.5 rounded hover:bg-[#00A8E8] hover:text-white transition-colors disabled:opacity-50"
+                      >
+                        {descargandoArchivo === archivo.name ? 'Bajando...' : 'Descargar'}
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-gray-500 font-mono text-center py-4">No hay documentos cargados en el búnker.</p>
+                )}
+              </div>
+              <p className="text-[10px] text-gray-500 mt-4 leading-relaxed relative z-10">
+                Descarga estos archivos y súbelos manualmente a la consola de Twilio para verificar la identidad de la sociedad y comprar el número de teléfono.
+              </p>
+            </div>
+
             <div className="bg-[#121212]/80 backdrop-blur-xl border border-white/5 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
               <h2 className="text-xs md:text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Pasarela de Pagos (Stripe)</h2>
               <div className="space-y-3">
